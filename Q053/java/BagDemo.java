@@ -18,17 +18,32 @@ public class BagDemo {
         void add(T item, int n) {
             // TODO(Q053): if (n <= 0) throw new IllegalArgumentException(...);
             //   counts.merge(item, n, Integer::sum); size += n;
+            if (n <= 0) {
+                throw new IllegalArgumentException("n must be positive: " + n);
+            }
+            counts.merge(item, n, Integer::sum);
+            size += n;
         }
 
         /** Object, not T, like Collection.contains: asking about a stranger is not an error. */
         int count(Object item) {
             // TODO(Q053): return counts.getOrDefault(item, 0);
-            return 0;
+            return counts.getOrDefault(item, 0);
         }
 
         boolean remove(T item) {
             // TODO(Q053): if absent return false; if count == 1 remove the key, else decrement; size--;
-            return false;
+            Integer c = counts.get(item);
+            if (c == null) {
+                return false;
+            }
+            if (c == 1) {
+                counts.remove(item);
+            } else {
+                counts.put(item, c - 1);
+            }
+            size--;
+            return true;
         }
 
         int size() {
@@ -37,25 +52,34 @@ public class BagDemo {
 
         int distinct() {
             // TODO(Q053): return counts.size();
-            return 0;
+            return counts.size();
         }
 
         /** The element added most often; on a tie, the one added first. */
         Optional<T> mostCommon() {
             // TODO(Q053): walk entries in insertion order, keep the first strictly larger count.
-            return Optional.empty();
+            Optional<Map.Entry<T, Integer>> best = Optional.empty();
+            for (Map.Entry<T, Integer> e : counts.entrySet()) {
+                if (best.isEmpty() || e.getValue() > best.get().getValue()) {   // > not >=: first added wins a tie
+                    best = Optional.of(e);
+                }
+            }
+            return best.map(Map.Entry::getKey);
         }
 
         /** A read-only view: callers can look but cannot corrupt size. */
         Map<T, Integer> asMap() {
             // TODO(Q053): return Collections.unmodifiableMap(counts);
-            return counts;
+            return Collections.unmodifiableMap(counts);
         }
 
         /** A generic method: the union of two bags of any subtype of T. */
         static <T> Bag<T> union(Bag<? extends T> a, Bag<? extends T> b) {
             // TODO(Q053): result = new Bag<>(); a.counts.forEach(result::add); b.counts.forEach(result::add);
-            return new Bag<>();
+            Bag<T> result = new Bag<>();
+            a.counts.forEach(result::add);
+            b.counts.forEach(result::add);
+            return result;
         }
 
         @Override
