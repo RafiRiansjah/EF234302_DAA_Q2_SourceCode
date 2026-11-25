@@ -1,4 +1,4 @@
-# 5053251014_Quiz_DAA_M_2
+# Quiz_DAA_M_2
 
 **QUIZ DAA (M) 2**
 
