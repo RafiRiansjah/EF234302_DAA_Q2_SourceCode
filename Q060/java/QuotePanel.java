@@ -35,7 +35,24 @@ public class QuotePanel {
         // TODO(Q060): parse kg; if invalid return the error text; if kg<=0 or kg>50 return the
         //   range error; halfKg = ceil(2*max(kg, s.minKg)); price = s.rate*halfKg/2; hours = s.hours;
         //   if express: price = 3*price/2, hours = max(6, s.hours/4); return the formatted label.
-        return "";
+        double kg;
+        try {
+            kg = Double.parseDouble(kgText.strip());
+        } catch (NumberFormatException e) {
+            return "Weight must be a number, not '" + kgText + "'";
+        }
+        if (Double.isNaN(kg) || kg <= 0 || kg > 50) {
+            return "Weight must be above 0 and at most 50 kg";
+        }
+        long halfKg = (long) Math.ceil(2 * Math.max(kg, s.minKg));     // chargeable weight in half-kilograms
+        long price = s.rate * halfKg / 2;
+        int hours = s.hours;
+        if (express) {
+            price = 3 * price / 2;                                      // floor(3P/2)
+            hours = Math.max(6, s.hours / 4);                           // floor(h/4), at least 6
+        }
+        return String.format(Locale.ROOT, "%s %.1f kg%s: Rp%,d, ready in %d h",
+                s.name(), halfKg / 2.0, express ? " express" : "", price, hours);
     }
 
     /** The view: components plus listeners that only ask the model. */
@@ -74,6 +91,13 @@ public class QuotePanel {
         private void refresh(boolean explicit) {
             // TODO(Q060): handled++; if (explicit) quoted = true;
             //   if (quoted) result.setText(quote(kg.getText(), (Service) service.getSelectedItem(), express.isSelected()));
+            handled++;
+            if (explicit) {
+                quoted = true;
+            }
+            if (quoted) {
+                result.setText(quote(kg.getText(), (Service) service.getSelectedItem(), express.isSelected()));
+            }
         }
     }
 
